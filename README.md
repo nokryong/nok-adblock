@@ -2,9 +2,9 @@
 
 광고·추적 도메인을 기기에서 걸러 주는 Android 앱입니다. 루팅 없이 로컬 VPN으로 DNS 요청을 처리하고, 사용자가 등록한 사이트에는 실험적인 TLS 연결 분할을 적용할 수 있습니다. AdGuard·유니콘과는 별개인 독립 프로젝트입니다.
 
-[릴리즈 목록](https://github.com/nokryong/nok-adblock/releases) · [변경 기록](CHANGELOG.md) · [문제 제보](https://github.com/nokryong/nok-adblock/issues) · [MIT 라이선스](LICENSE)
+**[APK 0.3.2 다운로드](https://github.com/nokryong/nok-adblock/releases/download/v0.3.2/nok-adblock-0.3.2.apk)** · [SHA-256](https://github.com/nokryong/nok-adblock/releases/download/v0.3.2/nok-adblock-0.3.2.apk.sha256) · [릴리즈 목록](https://github.com/nokryong/nok-adblock/releases) · [변경 기록](CHANGELOG.md) · [문제 제보](https://github.com/nokryong/nok-adblock/issues) · [MIT 라이선스](LICENSE)
 
-현재 소스 버전은 **0.3.2**입니다. 아직 공개된 GitHub Release와 다운로드 가능한 APK가 없습니다. 설치 파일은 릴리즈에 검증된 APK가 등록된 뒤 제공됩니다. GitHub의 **Source code** 압축 파일은 설치용 APK가 아닙니다.
+현재 배포 버전은 **0.3.2**입니다. [v0.3.2 릴리즈](https://github.com/nokryong/nok-adblock/releases/tag/v0.3.2)에서 APK와 SHA-256 파일을 제공합니다. GitHub의 **Source code** 압축 파일은 설치용 APK가 아닙니다.
 
 ## 주요 기능
 
@@ -29,7 +29,7 @@
 
 ## 설치와 사용
 
-검증된 APK가 릴리즈에 게시된 이후의 사용 순서입니다.
+[v0.3.2 릴리즈](https://github.com/nokryong/nok-adblock/releases/tag/v0.3.2)의 APK로 설치할 수 있습니다.
 
 1. [릴리즈 목록](https://github.com/nokryong/nok-adblock/releases)에서 APK와 SHA-256 파일을 내려받고 체크섬을 확인합니다.
 2. Android에서 APK를 열어 설치합니다. 필요한 경우 APK를 연 앱의 **이 출처 허용**을 켭니다.
@@ -49,7 +49,7 @@
 
 ### 앱 업데이트
 
-**설정 → 자동 업데이트**가 켜져 있으면 앱 실행 시와 백그라운드 작업에서 정식 릴리즈를 확인합니다. 새 버전은 미리 내려받아 검증하고, 알림과 첫 화면에서 설치를 안내합니다. **지금 업데이트 확인**으로 직접 확인할 수도 있습니다. 공개 릴리즈가 없는 동안에는 받을 업데이트가 없습니다.
+**설정 → 자동 업데이트**가 켜져 있으면 앱 실행 시와 백그라운드 작업에서 정식 릴리즈를 확인합니다. 새 버전은 미리 내려받아 검증하고, 알림과 첫 화면에서 설치를 안내합니다. **지금 업데이트 확인**으로 직접 확인할 수도 있습니다.
 
 다운로드 크기와 GitHub가 제공하는 SHA-256, 패키지명, 증가한 버전 코드, 파일명과 일치하는 버전 이름, 최소 Android 버전, 설치된 앱과의 서명 호환성을 확인합니다. 설치 시 Android 확인 화면을 거치며, 처음에는 NOK의 **이 출처 허용**이 필요합니다. 업데이트로 중단된 보호는 설치 후 재시작을 시도합니다. 기존 앱을 삭제하면 설정이 사라질 수 있으므로 호환되는 서명의 APK로 덮어 설치합니다.
 
@@ -124,7 +124,7 @@ Android의 `mc-linux` 환경에서 저장소가 `/workspace`에 있다면 `mc-li
 3. GitHub Release에 `nok-adblock-0.3.2.apk`와 `nok-adblock-0.3.2.apk.sha256`을 첨부합니다. 소스 압축 파일만으로는 앱 업데이트가 동작하지 않습니다.
 4. 공개 다운로드가 정상인지, APK의 SHA-256이 체크섬 파일 및 GitHub asset의 `digest`와 일치하는지 확인합니다. 앱 업데이트는 draft·prerelease를 제외하며, `uploaded` 상태와 유효한 `sha256:` digest가 있는 정식 버전 APK만 선택합니다.
 
-저장소에는 현재 자동 빌드·릴리즈 워크플로가 없습니다. 서명 자료와 검증된 APK를 확보하기 전에는 다운로드 링크나 배포 완료를 표시하지 않습니다.
+저장소에는 현재 자동 빌드·릴리즈 워크플로가 없습니다. 이후 릴리즈도 기존 서명 자료와 APK 검증 결과를 확인한 뒤 게시해야 합니다.
 
 ## 테스트
 
