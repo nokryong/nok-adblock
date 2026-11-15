@@ -67,11 +67,11 @@ public final class UpdatePolicy {
     }
     public static void checkIdentity(String expectedPackage, String actualPackage, long installedCode, long actualCode,
                                      String expectedVersion, String actualVersion, int minSdk, int deviceSdk, boolean signers) throws IOException {
-        if (!expectedPackage.equals(actualPackage)) throw new IOException("다른 앱의 APK입니다");
-        if (actualCode <= installedCode) throw new IOException("현재 앱보다 새 버전이 아닙니다");
-        if (!expectedVersion.equals(actualVersion)) throw new IOException("릴리즈와 APK의 버전이 다릅니다");
-        if (minSdk > deviceSdk) throw new IOException("이 기기의 Android 버전을 지원하지 않습니다");
-        if (!signers) throw new IOException("설치된 앱과 서명이 다릅니다");
+        if (!expectedPackage.equals(actualPackage)) throw new IOException(Messages.text("다른 앱의 APK입니다", "This APK belongs to a different app"));
+        if (actualCode <= installedCode) throw new IOException(Messages.text("현재 앱보다 새 버전이 아닙니다", "This version is not newer than the installed app"));
+        if (!expectedVersion.equals(actualVersion)) throw new IOException(Messages.text("릴리즈와 APK의 버전이 다릅니다", "The release and APK versions do not match"));
+        if (minSdk > deviceSdk) throw new IOException(Messages.text("이 기기의 Android 버전을 지원하지 않습니다", "This device's Android version is not supported"));
+        if (!signers) throw new IOException(Messages.text("설치된 앱과 서명이 다릅니다", "The signature does not match the installed app"));
     }
     /** Copies exactly the announced bytes; the caller discards the output on any failure. */
     public static void copyVerified(InputStream in, OutputStream out, long size, String sha256, BooleanSupplier cancelled) throws IOException {
@@ -80,13 +80,13 @@ public final class UpdatePolicy {
         catch (NoSuchAlgorithmException e) { throw new IOException(e); }
         byte[] buffer = new byte[16384]; long total = 0; int n;
         while ((n = in.read(buffer)) != -1) {
-            if (cancelled.getAsBoolean()) throw new IOException("취소됨");
+            if (cancelled.getAsBoolean()) throw new IOException(Messages.text("취소됨", "Cancelled"));
             total += n;
-            if (total > size) throw new IOException("APK 크기가 릴리즈 정보와 다릅니다");
+            if (total > size) throw new IOException(Messages.text("APK 크기가 릴리즈 정보와 다릅니다", "The APK size does not match the release information"));
             digest.update(buffer, 0, n); out.write(buffer, 0, n);
         }
-        if (total != size) throw new IOException("APK 크기가 릴리즈 정보와 다릅니다");
-        if (!hex(digest.digest()).equals(sha256)) throw new IOException("APK 체크섬이 일치하지 않습니다");
+        if (total != size) throw new IOException(Messages.text("APK 크기가 릴리즈 정보와 다릅니다", "The APK size does not match the release information"));
+        if (!hex(digest.digest()).equals(sha256)) throw new IOException(Messages.text("APK 체크섬이 일치하지 않습니다", "The APK checksum does not match"));
     }
     public static String hex(byte[] bytes) {
         StringBuilder out = new StringBuilder();

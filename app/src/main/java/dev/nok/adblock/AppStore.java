@@ -41,7 +41,7 @@ public final class AppStore {
         day = prefs.getString("day", today()); total = prefs.getLong("total", 0);
         blocked = prefs.getLong("blocked", 0); errors = prefs.getLong("errors", 0);
         try { rules = new DomainRules(readList(), allowed()); }
-        catch (IOException e) { rules = new DomainRules(Collections.emptySet(), allowed()); updateError = "기본 목록을 읽지 못했습니다. 목록을 갱신해 주세요."; }
+        catch (IOException e) { rules = new DomainRules(Collections.emptySet(), allowed()); updateError = Messages.text("기본 목록을 읽지 못했습니다. 목록을 갱신해 주세요.", "Could not read the default list. Please update the blocklist."); }
     }
     private String today() { return new SimpleDateFormat("yyyy-MM-dd", Locale.ROOT).format(new Date()); }
     private AtomicFile listFile() { return new AtomicFile(new File(context.getFilesDir(), "hosts.txt")); }
@@ -65,7 +65,7 @@ public final class AppStore {
         Set<String> allow = allowed(); if (enabled) allow.add(domain); else allow.remove(domain);
         prefs.edit().putStringSet("allowed", allow).apply();
         try { rules = new DomainRules(readList(), allow); }
-        catch (IOException e) { updateError = "허용 목록을 적용하지 못했습니다."; }
+        catch (IOException e) { updateError = Messages.text("허용 목록을 적용하지 못했습니다.", "Could not apply the allowlist."); }
     }
     public synchronized long[] stats() { rollDay(); return new long[]{total, blocked, errors}; }
     private void rollDay() {
@@ -100,18 +100,18 @@ public final class AppStore {
         connection.setRequestProperty("User-Agent", "NOK-DNS/0.1");
         byte[] bytes;
         try {
-            if (connection.getResponseCode() != 200) throw new IOException("서버가 목록을 제공하지 않습니다");
+            if (connection.getResponseCode() != 200) throw new IOException(Messages.text("서버가 목록을 제공하지 않습니다", "The server did not provide a blocklist"));
             try (InputStream in = connection.getInputStream(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
                 byte[] buffer = new byte[8192]; int n;
                 while ((n = in.read(buffer)) != -1) {
-                    if (out.size() + n > 4 * 1024 * 1024) throw new IOException("목록 크기 제한을 초과했습니다");
+                    if (out.size() + n > 4 * 1024 * 1024) throw new IOException(Messages.text("목록 크기 제한을 초과했습니다", "The blocklist exceeds the size limit"));
                     out.write(buffer, 0, n);
                 }
                 bytes = out.toByteArray();
             }
         } finally { connection.disconnect(); }
         Set<String> parsed = DomainRules.parse(new InputStreamReader(new ByteArrayInputStream(bytes), StandardCharsets.UTF_8));
-        if (parsed.size() < 100) throw new IOException("유효한 차단 목록이 아닙니다");
+        if (parsed.size() < 100) throw new IOException(Messages.text("유효한 차단 목록이 아닙니다", "The blocklist is not valid"));
         synchronized (this) {
             AtomicFile file = listFile(); FileOutputStream out = null;
             try { out = file.startWrite(); out.write(bytes); file.finishWrite(out); }

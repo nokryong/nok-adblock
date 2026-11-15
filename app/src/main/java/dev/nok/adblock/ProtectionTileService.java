@@ -58,11 +58,11 @@ public final class ProtectionTileService extends TileService {
         if (tile == null) return;
         String state = DnsVpnService.state;
         boolean on = "ON".equals(state), busy = "STARTING".equals(state), stopping = "STOPPING".equals(state);
-        String detail = on ? DnsVpnService.bypassActive ? "켜짐 · 접속 우회" : "켜짐" : busy ? "연결 중 · 눌러서 취소" : stopping ? "연결 종료 중" : "ERROR".equals(state) ? "연결 오류" : "꺼짐";
+        String detail = on ? DnsVpnService.bypassActive ? getString(R.string.svc_tile_bypass) : getString(R.string.svc_tile_on) : busy ? getString(R.string.svc_tile_starting) : stopping ? getString(R.string.svc_tile_stopping) : "ERROR".equals(state) ? getString(R.string.svc_tile_error) : getString(R.string.svc_tile_off);
         tile.setIcon(Icon.createWithResource(this, R.drawable.ic_notification));
-        tile.setLabel("NOK 광고 차단");
+        tile.setLabel(getString(R.string.svc_app_name));
         tile.setState(stopping ? Tile.STATE_UNAVAILABLE : on ? Tile.STATE_ACTIVE : Tile.STATE_INACTIVE);
-        tile.setContentDescription("NOK 광고 차단, " + detail);
+        tile.setContentDescription(getString(R.string.svc_tile_description, detail));
         if (Build.VERSION.SDK_INT >= 29) tile.setSubtitle(detail);
         if (Build.VERSION.SDK_INT >= 30) tile.setStateDescription(detail);
         tile.updateTile();

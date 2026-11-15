@@ -22,18 +22,18 @@ public final class NativeTunnel {
                     + "  log-file: null\n  log-level: error\n";
             try (OutputStream out = new FileOutputStream(config)) { out.write(yaml.getBytes(StandardCharsets.UTF_8)); }
             if (lease.isStopped()) return;
-            if (!TProxyService.TProxyStartService(config.getAbsolutePath(), fd)) throw new IOException("접속 우회 엔진을 시작하지 못했습니다");
+            if (!TProxyService.TProxyStartService(config.getAbsolutePath(), fd)) throw new IOException(Messages.text("접속 우회 엔진을 시작하지 못했습니다", "Could not start the connection bypass engine"));
             started = true;
             Thread.sleep(100);
-            if (!TProxyService.TProxyIsRunning() && !lease.isStopped()) throw new IOException("접속 우회 엔진 초기화 실패");
+            if (!TProxyService.TProxyIsRunning() && !lease.isStopped()) throw new IOException(Messages.text("접속 우회 엔진 초기화 실패", "Could not initialize the connection bypass engine"));
             if (!lease.isStopped()) ready.run();
             while (!lease.isStopped()) {
-                if (!TProxyService.TProxyIsRunning()) throw new IOException("접속 우회 엔진이 종료되었습니다");
+                if (!TProxyService.TProxyIsRunning()) throw new IOException(Messages.text("접속 우회 엔진이 종료되었습니다", "The connection bypass engine has stopped"));
                 Thread.sleep(100);
             }
         } finally {
             try {
-                if (started && !TProxyService.TProxyStopService()) throw new IOException("접속 우회 엔진 종료 실패");
+                if (started && !TProxyService.TProxyStopService()) throw new IOException(Messages.text("접속 우회 엔진 종료 실패", "Could not stop the connection bypass engine"));
             } finally { config.delete(); }
         }
     }

@@ -11,26 +11,26 @@ public final class DohResolver {
     private final Set<HttpsURLConnection> active = ConcurrentHashMap.newKeySet();
     private volatile boolean stopped;
     public byte[] resolve(String endpoint, byte[] query) throws IOException {
-        if (stopped) throw new IOException("중지됨");
+        if (stopped) throw new IOException(Messages.text("중지됨", "Stopped"));
         HttpsURLConnection c = (HttpsURLConnection) new URL(endpoint).openConnection();
         active.add(c);
         try {
-            if (stopped) throw new IOException("중지됨");
+            if (stopped) throw new IOException(Messages.text("중지됨", "Stopped"));
             c.setConnectTimeout(6000); c.setReadTimeout(6000); c.setRequestMethod("POST");
             c.setRequestProperty("Content-Type", "application/dns-message");
             c.setRequestProperty("Accept", "application/dns-message");
             c.setInstanceFollowRedirects(false); c.setUseCaches(false);
             c.setDoOutput(true); c.setFixedLengthStreamingMode(query.length);
             try (OutputStream out = c.getOutputStream()) { out.write(query); }
-            if (c.getResponseCode() != 200) throw new IOException("DNS 서버 HTTP " + c.getResponseCode());
+            if (c.getResponseCode() != 200) throw new IOException(Messages.text("DNS 서버 HTTP ", "DNS server HTTP ") + c.getResponseCode());
             String type = c.getContentType();
             if (type == null || !type.toLowerCase(java.util.Locale.ROOT).startsWith("application/dns-message"))
-                throw new IOException("DNS 응답 형식 오류");
+                throw new IOException(Messages.text("DNS 응답 형식 오류", "Invalid DNS response format"));
             byte[] result;
             try (InputStream in = c.getInputStream(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
                 byte[] buffer = new byte[4096]; int n;
                 while ((n = in.read(buffer)) != -1) {
-                    if (out.size() + n > 65535) throw new IOException("DNS 응답 크기 초과");
+                    if (out.size() + n > 65535) throw new IOException(Messages.text("DNS 응답 크기 초과", "DNS response exceeds the size limit"));
                     out.write(buffer, 0, n);
                 }
                 result = out.toByteArray();

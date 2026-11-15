@@ -45,7 +45,7 @@ public final class DomainRules {
         BufferedReader reader = new BufferedReader(input);
         String line; int lines = 0;
         while ((line = reader.readLine()) != null) {
-            if (++lines > 500000 || line.length() > 8192) throw new IOException("차단 목록이 너무 큽니다");
+            if (++lines > 500000 || line.length() > 8192) throw new IOException(Messages.text("차단 목록이 너무 큽니다", "The blocklist is too large"));
             int hash = line.indexOf('#'); if (hash >= 0) line = line.substring(0, hash);
             String[] parts = line.trim().split("\\s+");
             if (parts.length < 2 || !(parts[0].equals("0.0.0.0") || parts[0].equals("127.0.0.1") || parts[0].equals("::"))) continue;

@@ -87,18 +87,18 @@ public final class DnsVpnService extends VpnService {
         publishState("STARTING");
         try {
             NotificationManager manager = getSystemService(NotificationManager.class);
-            manager.createNotificationChannel(new NotificationChannel("protection", "광고 차단 상태", NotificationManager.IMPORTANCE_LOW));
+            manager.createNotificationChannel(new NotificationChannel("protection", getString(R.string.svc_protection_channel), NotificationManager.IMPORTANCE_LOW));
             PendingIntent open = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
             PendingIntent stop = PendingIntent.getService(this, 1, new Intent(this, DnsVpnService.class).setAction(STOP), PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
             Notification notification = new Notification.Builder(this, "protection").setSmallIcon(R.drawable.ic_notification)
-                    .setContentTitle("NOK 보호").setContentText(bypass ? "광고 차단과 접속 우회를 사용하고 있습니다" : "DNS 광고 차단을 사용하고 있습니다")
-                    .setOngoing(true).setContentIntent(open).addAction(new Notification.Action.Builder(null, "차단 끄기", stop).build()).build();
+                    .setContentTitle(getString(R.string.svc_protection_title)).setContentText(bypass ? getString(R.string.svc_protection_bypass) : getString(R.string.svc_protection_dns))
+                    .setOngoing(true).setContentIntent(open).addAction(new Notification.Action.Builder(null, getString(R.string.svc_stop), stop).build()).build();
             if (Build.VERSION.SDK_INT >= 34) startForeground(1, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
             else startForeground(1, notification);
             session.reader = new Thread(() -> runTunnel(session), "nok-tunnel");
             session.reader.start(); return START_STICKY;
         } catch (Exception e) {
-            session.failure = "차단 서비스를 시작하지 못했습니다: " + e.getClass().getSimpleName();
+            session.failure = Messages.text("차단 서비스를 시작하지 못했습니다: ", "Could not start the blocking service: ") + e.getClass().getSimpleName();
             closeSession(session); finishSession(session); return START_NOT_STICKY;
         }
     }
@@ -106,14 +106,14 @@ public final class DnsVpnService extends VpnService {
         try {
             session.store = AppStore.get(this);
             if (session.lease.isStopped()) return;
-            if (session.store.rules.size() == 0) throw new IOException("차단 목록이 비어 있습니다");
-            Builder builder = new Builder().setSession("NOK DNS 광고 차단").setMtu(1500)
+            if (session.store.rules.size() == 0) throw new IOException(Messages.text("차단 목록이 비어 있습니다", "The blocklist is empty"));
+            Builder builder = new Builder().setSession(getString(R.string.svc_dns_session)).setMtu(1500)
                     .addAddress("10.111.0.1", 32).addDnsServer("10.111.0.2").addRoute("10.111.0.2", 32)
                     .allowFamily(OsConstants.AF_INET6).setBlocking(false).setConfigureIntent(
                             PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT));
             builder.addDisallowedApplication(getPackageName());
             if (session.bypass) {
-                builder.setSession("NOK 광고 차단 · 접속 우회").addRoute("0.0.0.0", 0)
+                builder.setSession(getString(R.string.svc_bypass_session)).addRoute("0.0.0.0", 0)
                         .addAddress("fd11:111::1", 128).addRoute("::", 0);
                 LocalProxy created = new LocalProxy(query -> resolveBlocking(session, query),
                         host -> session.store.rules.blocks(host), host -> session.store.bypassRules.blocks(host));
@@ -125,7 +125,7 @@ public final class DnsVpnService extends VpnService {
             if (Build.VERSION.SDK_INT >= 29) builder.setMetered(false);
             if (session.lease.isStopped()) return;
             ParcelFileDescriptor opened = builder.establish();
-            if (opened == null) throw new IOException("VPN 연결 승인이 필요합니다");
+            if (opened == null) throw new IOException(Messages.text("VPN 연결 승인이 필요합니다", "VPN connection permission is required"));
             // If Stop raced with establish(), attach closes the late descriptor immediately.
             if (!session.lease.attach(opened)) return;
             session.tunnel = opened;
@@ -168,7 +168,7 @@ public final class DnsVpnService extends VpnService {
                 int ready = Os.poll(new StructPollfd[]{poll}, 250);
                 if (session.lease.isStopped()) break;
                 if (ready == 0) continue;
-                if ((poll.revents & (OsConstants.POLLERR | OsConstants.POLLHUP | OsConstants.POLLNVAL)) != 0) throw new IOException("VPN 연결이 종료되었습니다");
+                if ((poll.revents & (OsConstants.POLLERR | OsConstants.POLLHUP | OsConstants.POLLNVAL)) != 0) throw new IOException(Messages.text("VPN 연결이 종료되었습니다", "The VPN connection has ended"));
                 int count;
                 try {
                     synchronized (session.outputLock) {
@@ -184,14 +184,14 @@ public final class DnsVpnService extends VpnService {
                 else handleTcp(session, packet);
             }
         } catch (Exception | LinkageError e) {
-            if (!session.lease.isStopped()) session.failure = "DNS 연결 오류: " + (e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage());
+            if (!session.lease.isStopped()) session.failure = Messages.text("DNS 연결 오류: ", "DNS connection error: ") + (e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage());
         } finally {
             closeSession(session);
             main.post(() -> finishSession(session));
         }
     }
     private byte[] resolveBlocking(Session session, byte[] query) throws IOException {
-        if (session.lease.isStopped()) throw new IOException("중지됨");
+        if (session.lease.isStopped()) throw new IOException(Messages.text("중지됨", "Stopped"));
         try {
             if (query.length < 12 || (query[2] & 0x80) != 0) return DnsMessage.error(query, 1);
             DnsMessage.Question question = DnsMessage.question(query);
@@ -222,8 +222,8 @@ public final class DnsVpnService extends VpnService {
         ConnectivityManager manager = getSystemService(ConnectivityManager.class);
         Network network = manager.getActiveNetwork(); // This app is excluded from its own VPN.
         LinkProperties link = network == null ? null : manager.getLinkProperties(network);
-        if (link == null) throw new IOException("기본 네트워크 없음");
-        IOException last = new IOException("기본 DNS 없음"); int tries = 0;
+        if (link == null) throw new IOException(Messages.text("기본 네트워크 없음", "No underlying network"));
+        IOException last = new IOException(Messages.text("기본 DNS 없음", "No system DNS server")); int tries = 0;
         for (InetAddress server : link.getDnsServers()) {
             if (++tries > 2) break;
             try { return PlainDns.exchange(server, 53, query, 2500, network::bindSocket); }
@@ -293,7 +293,7 @@ public final class DnsVpnService extends VpnService {
     private void closeSession(Session session) {
         session.lease.cancel();
         try { synchronized (session.outputLock) { if (!session.nativeInUse) session.lease.close(); } }
-        catch (IOException e) { session.releaseFailed = true; session.failure = "VPN 연결 종료 오류: " + e.getMessage(); }
+        catch (IOException e) { session.releaseFailed = true; session.failure = Messages.text("VPN 연결 종료 오류: ", "Could not close the VPN connection: ") + e.getMessage(); }
         session.workers.shutdownNow(); session.maintenance.shutdownNow();
         if (session.cleanupStarted.compareAndSet(false, true)) {
             // HTTPS disconnect may wait; keep it off the UI thread and after VPN release.

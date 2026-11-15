@@ -16,22 +16,22 @@ public final class DnsMessage {
     public static int u16(byte[] b, int p) { return ((b[p] & 255) << 8) | (b[p + 1] & 255); }
     public static void put16(byte[] b, int p, int v) { b[p] = (byte) (v >>> 8); b[p + 1] = (byte) v; }
     public static Question question(byte[] b) throws IOException {
-        if (b.length < 17 || u16(b, 4) != 1 || (b[2] & 0x78) != 0) throw new IOException("지원하지 않는 DNS 질문");
+        if (b.length < 17 || u16(b, 4) != 1 || (b[2] & 0x78) != 0) throw new IOException(Messages.text("지원하지 않는 DNS 질문", "Unsupported DNS question"));
         int p = 12;
         StringBuilder name = new StringBuilder();
         while (true) {
-            if (p >= b.length) throw new IOException("잘린 DNS 이름");
+            if (p >= b.length) throw new IOException(Messages.text("잘린 DNS 이름", "Truncated DNS name"));
             int len = b[p++] & 255;
             if (len == 0) break;
-            if (len > 63 || p + len > b.length || name.length() + len > 253) throw new IOException("잘못된 DNS 이름");
+            if (len > 63 || p + len > b.length || name.length() + len > 253) throw new IOException(Messages.text("잘못된 DNS 이름", "Invalid DNS name"));
             if (name.length() > 0) name.append('.');
             for (int i = 0; i < len; i++) {
                 int c = b[p++] & 255;
-                if (c <= 32 || c >= 127 || c == '.') throw new IOException("잘못된 DNS 레이블");
+                if (c <= 32 || c >= 127 || c == '.') throw new IOException(Messages.text("잘못된 DNS 레이블", "Invalid DNS label"));
                 name.append((char) c);
             }
         }
-        if (p + 4 > b.length || u16(b, p + 2) != 1) throw new IOException("지원하지 않는 DNS 클래스");
+        if (p + 4 > b.length || u16(b, p + 2) != 1) throw new IOException(Messages.text("지원하지 않는 DNS 클래스", "Unsupported DNS class"));
         return new Question(name.toString().toLowerCase(Locale.ROOT), u16(b, p), p + 4);
     }
     public static byte[] error(byte[] query, int code) {
@@ -49,9 +49,9 @@ public final class DnsMessage {
     }
     public static void validateResponse(byte[] query, byte[] answer) throws IOException {
         if (answer.length < 12 || answer.length > 65535 || (answer[2] & 0x80) == 0 || u16(answer, 0) != u16(query, 0))
-            throw new IOException("올바르지 않은 DNS 응답");
+            throw new IOException(Messages.text("올바르지 않은 DNS 응답", "Invalid DNS response"));
         Question q = question(query), a = question(answer);
-        if (!q.domain.equals(a.domain) || q.type != a.type) throw new IOException("DNS 질문과 응답이 다름");
+        if (!q.domain.equals(a.domain) || q.type != a.type) throw new IOException(Messages.text("DNS 질문과 응답이 다름", "DNS question and response do not match"));
     }
     /** Respect the client's EDNS size and the tunnel MTU; larger answers use TCP. */
     public static int udpLimit(byte[] query) {

@@ -67,7 +67,7 @@ public final class AppUpdater {
     }
     /** Runs on a worker thread. Returns the ready update, or null when already current. */
     public static Ready checkAndDownload(Context c) throws Exception {
-        if (!running.compareAndSet(false, true)) throw new IOException("이미 확인 중입니다");
+        if (!running.compareAndSet(false, true)) throw new IOException(Messages.text("이미 확인 중입니다", "An update check is already in progress"));
         try {
             UpdatePolicy.Asset best = latest();
             prefs(c).edit().putLong("update_checked", System.currentTimeMillis()).apply();
@@ -83,7 +83,7 @@ public final class AppUpdater {
                     UpdatePolicy.copyVerified(in, out, best.size, best.sha256, () -> false);
                 } finally { request.disconnect(); }
                 verifyPackage(c, part, best.version);
-                if (!part.renameTo(file)) throw new IOException("업데이트 파일을 저장하지 못했습니다");
+                if (!part.renameTo(file)) throw new IOException(Messages.text("업데이트 파일을 저장하지 못했습니다", "Could not save the update file"));
             } finally { part.delete(); }
             synchronized (AppUpdater.class) {
                 prefs(c).edit().putString("update_version", best.version).putString("update_sha256", best.sha256).putLong("update_size", best.size).apply();
@@ -97,7 +97,7 @@ public final class AppUpdater {
         try (InputStream in = request.getInputStream(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             byte[] buffer = new byte[8192]; int n;
             while ((n = in.read(buffer)) != -1) {
-                if (out.size() + n > 2 * 1024 * 1024) throw new IOException("릴리즈 응답이 너무 큽니다");
+                if (out.size() + n > 2 * 1024 * 1024) throw new IOException(Messages.text("릴리즈 응답이 너무 큽니다", "The release response is too large"));
                 out.write(buffer, 0, n);
             }
             releases = new JSONArray(new String(out.toByteArray(), StandardCharsets.UTF_8));
@@ -121,7 +121,7 @@ public final class AppUpdater {
     private static HttpURLConnection open(String address) throws IOException {
         URL url = new URL(address);
         for (int hop = 0; hop < 6; hop++) {
-            if (!UpdatePolicy.allowedUrl(url)) throw new IOException("허용되지 않은 업데이트 주소입니다");
+            if (!UpdatePolicy.allowedUrl(url)) throw new IOException(Messages.text("허용되지 않은 업데이트 주소입니다", "The update URL is not allowed"));
             HttpURLConnection request = (HttpURLConnection) url.openConnection();
             request.setInstanceFollowRedirects(false); request.setConnectTimeout(15000); request.setReadTimeout(30000);
             request.setRequestProperty("User-Agent", "NOK-Updater");
@@ -130,16 +130,16 @@ public final class AppUpdater {
             if (code == 200) return request;
             String location = request.getHeaderField("Location");
             request.disconnect();
-            if (code < 300 || code >= 400 || location == null) throw new IOException("업데이트 서버 응답 오류 (" + code + ")");
+            if (code < 300 || code >= 400 || location == null) throw new IOException(Messages.text("업데이트 서버 응답 오류 (", "Update server response error (") + code + ")");
             url = new URL(url, location);
         }
-        throw new IOException("다운로드 주소 이동이 너무 많습니다");
+        throw new IOException(Messages.text("다운로드 주소 이동이 너무 많습니다", "Too many download redirects"));
     }
     private static void verifyPackage(Context c, File apk, String version) throws Exception {
         PackageManager manager = c.getPackageManager();
         int flags = Build.VERSION.SDK_INT >= 28 ? PackageManager.GET_SIGNING_CERTIFICATES : PackageManager.GET_SIGNATURES;
         PackageInfo current = manager.getPackageInfo(c.getPackageName(), flags), next = manager.getPackageArchiveInfo(apk.getAbsolutePath(), flags);
-        if (next == null || next.applicationInfo == null) throw new IOException("APK 정보를 읽지 못했습니다");
+        if (next == null || next.applicationInfo == null) throw new IOException(Messages.text("APK 정보를 읽지 못했습니다", "Could not read APK information"));
         Set<String> history = new HashSet<>();
         if (Build.VERSION.SDK_INT >= 28 && next.signingInfo != null && !next.signingInfo.hasMultipleSigners())
             history = digests(next.signingInfo.getSigningCertificateHistory());
@@ -181,11 +181,11 @@ public final class AppUpdater {
     }
     public static void notifyReady(Context c, Ready update) {
         NotificationManager manager = c.getSystemService(NotificationManager.class);
-        manager.createNotificationChannel(new NotificationChannel("updates", "앱 업데이트", NotificationManager.IMPORTANCE_DEFAULT));
+        manager.createNotificationChannel(new NotificationChannel("updates", c.getString(R.string.svc_update_channel), NotificationManager.IMPORTANCE_DEFAULT));
         PendingIntent open = PendingIntent.getActivity(c, 74, new Intent(c, MainActivity.class).setAction(OPEN_UPDATE),
                 PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
         manager.notify(2, new Notification.Builder(c, "updates").setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle("NOK " + update.version + " 업데이트 준비됨").setContentText("눌러서 설치 화면을 열어 주세요")
+                .setContentTitle(c.getString(R.string.svc_update_ready, update.version)).setContentText(c.getString(R.string.svc_update_tap))
                 .setAutoCancel(true).setContentIntent(open).build());
     }
 }
