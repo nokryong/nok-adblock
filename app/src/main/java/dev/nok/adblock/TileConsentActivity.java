@@ -42,7 +42,7 @@ public final class TileConsentActivity extends Activity {
         if (request == 41) finish(); // Notification denial does not undo approved VPN protection.
     }
     private void error() {
-        Toast.makeText(this, "차단을 시작하지 못했습니다. NOK 앱에서 연결을 확인해 주세요.", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, getString(R.string.svc_start_failed), Toast.LENGTH_LONG).show();
         ProtectionTileService.refresh(this); finish();
     }
 }

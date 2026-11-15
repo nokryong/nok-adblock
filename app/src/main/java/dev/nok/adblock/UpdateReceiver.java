@@ -22,9 +22,9 @@ public final class UpdateReceiver extends BroadcastReceiver {
             Intent confirm = intent.getParcelableExtra(Intent.EXTRA_INTENT);
             if (confirm == null) return;
             try { context.startActivity(confirm.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); }
-            catch (RuntimeException e) { Toast.makeText(context, "설치 화면을 열지 못했습니다", Toast.LENGTH_LONG).show(); }
+            catch (RuntimeException e) { Toast.makeText(context, context.getString(R.string.svc_installer_open_failed), Toast.LENGTH_LONG).show(); }
         } else if (status != PackageInstaller.STATUS_SUCCESS && status != PackageInstaller.STATUS_FAILURE_ABORTED) {
-            Toast.makeText(context, "업데이트를 설치하지 못했습니다", Toast.LENGTH_LONG).show();
+            Toast.makeText(context, context.getString(R.string.svc_install_failed), Toast.LENGTH_LONG).show();
         }
     }
 }
