@@ -4,9 +4,9 @@
 
 An independent Android app that filters advertising and tracking domains on your device through a local VPN, without root. It also offers experimental TLS connection splitting for sites you explicitly add. This project is not affiliated with AdGuard or Unicorn.
 
-[Download released APK 0.3.2](https://github.com/nokryong/nok-adblock/releases/tag/v0.3.2) · [Issues](https://github.com/nokryong/nok-adblock/issues) · [License](LICENSE)
+[Download released APK 0.3.3](https://github.com/nokryong/nok-adblock/releases/tag/v0.3.3) · [Issues](https://github.com/nokryong/nok-adblock/issues) · [License](LICENSE)
 
-**The released 0.3.2 APK is Korean-only. English localization is in the source tree and is not yet released.** The updated app follows the device language: Korean for Korean devices, English otherwise. This covers the interface, dialogs, notifications, Quick Settings tile, and error messages.
+The app follows the device language: Korean for Korean devices, English otherwise. This covers the interface, dialogs, notifications, Quick Settings tile, and error messages.
 
 ## Features
 

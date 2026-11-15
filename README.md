@@ -2,13 +2,13 @@
 
 한국어 · [English](README.en.md)
 
-소스에는 기기 언어에 따른 한국어·영어 지원이 추가되어 있습니다. 현재 배포된 0.3.2 APK에는 아직 반영되지 않았습니다.
+기기 언어에 따라 한국어·영어로 표시됩니다.
 
 광고·추적 도메인을 기기에서 걸러 주는 Android 앱입니다. 루팅 없이 로컬 VPN으로 DNS 요청을 처리하고, 사용자가 등록한 사이트에는 실험적인 TLS 연결 분할을 적용할 수 있습니다. AdGuard·유니콘과는 별개인 독립 프로젝트입니다.
 
-**[APK 0.3.2 다운로드](https://github.com/nokryong/nok-adblock/releases/download/v0.3.2/nok-adblock-0.3.2.apk)** · [SHA-256](https://github.com/nokryong/nok-adblock/releases/download/v0.3.2/nok-adblock-0.3.2.apk.sha256) · [릴리즈 목록](https://github.com/nokryong/nok-adblock/releases) · [변경 기록](CHANGELOG.md) · [문제 제보](https://github.com/nokryong/nok-adblock/issues) · [MIT 라이선스](LICENSE)
+**[APK 0.3.3 다운로드](https://github.com/nokryong/nok-adblock/releases/download/v0.3.3/nok-adblock-0.3.3.apk)** · [SHA-256](https://github.com/nokryong/nok-adblock/releases/download/v0.3.3/nok-adblock-0.3.3.apk.sha256) · [릴리즈 목록](https://github.com/nokryong/nok-adblock/releases) · [변경 기록](CHANGELOG.md) · [문제 제보](https://github.com/nokryong/nok-adblock/issues) · [MIT 라이선스](LICENSE)
 
-현재 배포 버전은 **0.3.2**입니다. [v0.3.2 릴리즈](https://github.com/nokryong/nok-adblock/releases/tag/v0.3.2)에서 APK와 SHA-256 파일을 제공합니다. GitHub의 **Source code** 압축 파일은 설치용 APK가 아닙니다.
+현재 배포 버전은 **0.3.3**입니다. [v0.3.3 릴리즈](https://github.com/nokryong/nok-adblock/releases/tag/v0.3.3)에서 APK와 SHA-256 파일을 제공합니다. GitHub의 **Source code** 압축 파일은 설치용 APK가 아닙니다.
 
 ## 주요 기능
 
