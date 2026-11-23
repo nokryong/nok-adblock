@@ -11,6 +11,9 @@ import android.os.*;
 import android.provider.Settings;
 import android.view.*;
 import android.widget.*;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.text.*;
 import java.util.*;
 import java.util.concurrent.*;
@@ -28,7 +31,7 @@ public final class MainActivity extends Activity {
     private ShieldView shield;
     private Switch bypassSwitch;
     private String page = "home", lastLogKey = "";
-    private static final Set<String> SECOND_LEVEL = new HashSet<>(Arrays.asList("co", "com", "net", "org", "ac", "go", "or", "ne", "gov", "edu"));
+    private PublicSuffixes logSuffixes;
     private final Set<String> openLogs = new HashSet<>();
     private boolean resumed;
     private final Runnable refresh = new Runnable() {
@@ -137,18 +140,32 @@ public final class MainActivity extends Activity {
         if (entries.isEmpty()) {
             LinearLayout empty = card(); empty.addView(text(store.recordLogs ? getString(R.string.main_logs_empty) : getString(R.string.main_logs_disabled), 18, TEXT, true));
             addHint(empty, store.recordLogs ? getString(R.string.main_logs_empty_hint) : getString(R.string.main_logs_disabled_hint), 12, 0); body.addView(empty);
+            return;
+        }
+        if (logSuffixes == null) {
+            try (InputStreamReader reader = new InputStreamReader(
+                    getAssets().open("public_suffix_list.dat"), StandardCharsets.UTF_8)) {
+                logSuffixes = new PublicSuffixes(reader);
+            } catch (IOException e) {
+                // Keep complete host names if the bundled rules cannot be read.
+                logSuffixes = new PublicSuffixes();
+            }
         }
         SimpleDateFormat time = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
         LinkedHashMap<String, LinkedHashMap<String, List<AppStore.LogEntry>>> groups = new LinkedHashMap<>();
-        for (AppStore.LogEntry entry : entries)
-            groups.computeIfAbsent(baseDomain(entry.domain), k -> new LinkedHashMap<>()).computeIfAbsent(entry.domain, k -> new ArrayList<>()).add(entry);
+        for (AppStore.LogEntry entry : entries) {
+            groups.computeIfAbsent(logSuffixes.site(entry.domain), key -> new LinkedHashMap<>())
+                    .computeIfAbsent(entry.domain, key -> new ArrayList<>()).add(entry);
+        }
         for (Map.Entry<String, LinkedHashMap<String, List<AppStore.LogEntry>>> group : groups.entrySet()) {
             LinearLayout item = card();
             LinearLayout hosts = accordion(item, group.getKey(), "b:" + group.getKey(), 14);
             for (Map.Entry<String, List<AppStore.LogEntry>> host : group.getValue().entrySet()) {
                 LinearLayout times = accordion(hosts, host.getKey(), "h:" + host.getKey(), 13);
                 for (AppStore.LogEntry entry : host.getValue()) {
-                    TextView stamp = text(time.format(new Date(entry.time)), 12, MUTED, false); stamp.setPadding(0, dp(8), 0, dp(8));
+                    TextView stamp = text(time.format(new Date(entry.time)) + getString(R.string.main_log_entry_suffix), 12, MUTED, false);
+                    stamp.setMinHeight(dp(48));
+                    stamp.setGravity(Gravity.CENTER_VERTICAL);
                     stamp.setOnClickListener(v -> new AlertDialog.Builder(this).setTitle(getString(R.string.main_allow_title))
                             .setMessage(entry.domain + getString(R.string.main_allow_message))
                             .setNegativeButton(getString(R.string.main_cancel), null).setPositiveButton(getString(R.string.main_allow), (d, w) -> { store.allow(entry.domain, true); toast(getString(R.string.main_allowed_toast)); }).show());
@@ -159,7 +176,7 @@ public final class MainActivity extends Activity {
         }
     }
     private LinearLayout accordion(LinearLayout parent, String title, String key, float size) {
-        LinearLayout head = row(); head.setGravity(Gravity.CENTER_VERTICAL); head.setMinimumHeight(dp(40));
+        LinearLayout head = row(); head.setGravity(Gravity.CENTER_VERTICAL); head.setMinimumHeight(dp(48));
         TextView label = text(title, size, TEXT, true); label.setBreakStrategy(0);
         head.addView(label, new LinearLayout.LayoutParams(0, -2, 1));
         ImageView arrow = new ImageView(this); arrow.setImageResource(R.drawable.ic_arrow_down);
@@ -172,12 +189,6 @@ public final class MainActivity extends Activity {
             content.setVisibility(show ? View.VISIBLE : View.GONE); arrow.setRotation(show ? 180 : 0);
         });
         parent.addView(head); parent.addView(content); return content;
-    }
-    private static String baseDomain(String domain) {
-        String[] labels = domain.split("\\.");
-        if (labels.length < 3) return domain;
-        int keep = labels[labels.length - 1].length() == 2 && SECOND_LEVEL.contains(labels[labels.length - 2]) ? 3 : 2;
-        return String.join(".", Arrays.copyOfRange(labels, labels.length - keep, labels.length));
     }
     private String logKey() {
         List<AppStore.LogEntry> logs = store.logs(); return store.recordLogs + ":" + logs.size() + ":" + (logs.isEmpty() ? "" : logs.get(0).time);

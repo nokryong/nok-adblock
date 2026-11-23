@@ -1,1 +1,0 @@
-Love Þy self , like I do for Þee.

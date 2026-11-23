@@ -12,6 +12,12 @@ The app bundles the **AdAway default blocklist**, unchanged as `app/src/main/ass
 
 There is no AdAway, AdGuard, or Unicorn application code in this project.
 
+The log view uses the **Public Suffix List**, bundled unchanged as `app/src/main/assets/public_suffix_list.dat`.
+
+- Project and source: https://publicsuffix.org/list/
+- License: Mozilla Public License 2.0 (https://mozilla.org/MPL/2.0/).
+- The list identifies registrable domains for display in the log.
+
 The APK also includes **hev-socks5-tunnel 2.19.3**, its Java JNI binding and Android native libraries for arm64-v8a, armeabi-v7a, x86, and x86_64.
 
 - Author: hev and upstream contributors.

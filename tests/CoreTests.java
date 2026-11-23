@@ -79,6 +79,20 @@ public final class CoreTests {
         check(bundled.contains("ad.doubleclick.net"), "bundled known advertising domain");
         System.out.println("Bundled domain count: " + bundled.size());
     }
+    static void logSiteTests(Path list) throws IOException {
+        PublicSuffixes suffixes;
+        try (Reader input = Files.newBufferedReader(list)) { suffixes = new PublicSuffixes(input); }
+        check("example.com".equals(suffixes.site("ads.example.com")), "regular log site");
+        check("example.co.kr".equals(suffixes.site("ads.example.co.kr")), "country-code suffix");
+        check("alpha.github.io".equals(suffixes.site("ads.alpha.github.io"))
+                && "beta.github.io".equals(suffixes.site("ads.beta.github.io")), "GitHub Pages sites stay separate");
+        check("alpha.appspot.com".equals(suffixes.site("ads.alpha.appspot.com")), "private hosting suffix");
+        check("sample.foo.ck".equals(suffixes.site("ads.sample.foo.ck")), "wildcard suffix");
+        check("www.ck".equals(suffixes.site("ads.www.ck")), "public suffix wildcard exception");
+        check("foo.ck".equals(suffixes.site("foo.ck")), "hostname that is itself a public suffix");
+        check("ads.internal.invalid".equals(suffixes.site("ads.internal.invalid")), "unknown suffix keeps full hostname");
+        check("ads.example.com".equals(new PublicSuffixes().site("ads.example.com")), "missing list keeps full hostname");
+    }
     static void packetTests() throws Exception {
         byte[] q = query("example.com", 1);
         byte[] original = clientPacket(17, 0, 0, 0, q);
@@ -150,7 +164,8 @@ public final class CoreTests {
         check(output.stream().allMatch(b -> b.length <= 1240), "TCP segments fit tunnel MTU");
     }
     public static void main(String[] args) throws Exception {
-        dnsTests(); ruleTests(Paths.get(args[0])); packetTests(); tcpTests();
+        Path hosts = Paths.get(args[0]);
+        dnsTests(); ruleTests(hosts); logSiteTests(hosts.resolveSibling("public_suffix_list.dat")); packetTests(); tcpTests();
         System.out.println("PASS: " + checks + " checks (including 20000 malformed DNS/IP samples)");
     }
 }
